@@ -1,8 +1,8 @@
 /* eslint-disable func-style */
 /* eslint-disable no-use-before-define */
-import { assign } from "lodash";
-import React from "react";
-import { Helpers, Scale, Data, Wrapper } from "victory-core";
+import { assign } from 'lodash';
+import React from 'react';
+import { Helpers, Scale, Data, Wrapper } from 'victory-core';
 
 const fallbackProps = {
   width: 450,
@@ -13,23 +13,31 @@ const fallbackProps = {
 
 // eslint-disable-next-line max-statements
 function getCalculatedProps(props, childComponents) {
-  const role = "group";
+  const role = 'group';
   props = Helpers.modifyProps(props, fallbackProps, role);
   const style = Wrapper.getStyle(props.theme, props.style, role);
   const { offset, colorScale, color, polar, horizontal } = props;
   const categories = Wrapper.getCategories(props, childComponents);
   const datasets = Wrapper.getDataFromChildren(props);
   const domain = {
-    x: Wrapper.getDomain(assign({}, props, { categories }), "x", childComponents),
-    y: Wrapper.getDomain(assign({}, props, { categories }), "y", childComponents)
+    x: Wrapper.getDomain(
+      assign({}, props, { categories }),
+      'x',
+      childComponents
+    ),
+    y: Wrapper.getDomain(
+      assign({}, props, { categories }),
+      'y',
+      childComponents
+    )
   };
   const range = {
-    x: Helpers.getRange(props, "x"),
-    y: Helpers.getRange(props, "y")
+    x: Helpers.getRange(props, 'x'),
+    y: Helpers.getRange(props, 'y')
   };
   const baseScale = {
-    x: Scale.getScaleFromProps(props, "x") || Wrapper.getScale(props, "x"),
-    y: Scale.getScaleFromProps(props, "y") || Wrapper.getScale(props, "y")
+    x: Scale.getScaleFromProps(props, 'x') || Wrapper.getScale(props, 'x'),
+    y: Scale.getScaleFromProps(props, 'y') || Wrapper.getScale(props, 'y')
   };
   const scale = {
     x: baseScale.x.domain(domain.x).range(props.horizontal ? range.y : range.x),
@@ -67,10 +75,9 @@ function pixelsToValue(props, axis, calculatedProps) {
 }
 
 function getX0(props, calculatedProps, index) {
-  console.log("calculatedProps.datasets: ", calculatedProps.datasets);
+  // Fix the offset issue
   const center = (calculatedProps.datasets[0].length - 1) / 2;
-  const totalWidth = pixelsToValue(props, "x", calculatedProps);
-  console.log("formula: ", index, center, totalWidth, (index - center) * totalWidth);
+  const totalWidth = pixelsToValue(props, 'x', calculatedProps);
   return (index - center) * totalWidth;
 }
 
@@ -95,7 +102,15 @@ function getLabels(props, datasets, index) {
 }
 
 function getChildProps(props, calculatedProps) {
-  const { categories, domain, range, scale, horizontal, origin, padding } = calculatedProps;
+  const {
+    categories,
+    domain,
+    range,
+    scale,
+    horizontal,
+    origin,
+    padding
+  } = calculatedProps;
   const { width, height, theme, polar } = props;
   return {
     height,
@@ -116,7 +131,7 @@ function getChildProps(props, calculatedProps) {
 function getColorScale(props, child) {
   const role = child.type && child.type.role;
   const colorScaleOptions = child.props.colorScale || props.colorScale;
-  if (role !== "group" && role !== "stack") {
+  if (role !== 'group' && role !== 'stack') {
     return undefined;
   }
   return props.theme && props.theme.group
@@ -127,32 +142,37 @@ function getColorScale(props, child) {
 function getDataWithOffset(props, defaultDataset = [], offset) {
   const dataset = props.data || props.y ? Data.getData(props) : defaultDataset;
   const xOffset = offset || 0;
-  return dataset.map((datum) => {
+  return dataset.map(datum => {
     const _x1 =
-      datum._x instanceof Date ? new Date(datum._x.getTime() + xOffset) : datum._x + xOffset;
+      datum._x instanceof Date
+        ? new Date(datum._x.getTime() + xOffset)
+        : datum._x + xOffset;
 
     return assign({}, datum, { _x1 });
   });
 }
 
 function getChildren(props, childComponents, calculatedProps) {
-  props = Helpers.modifyProps(props, fallbackProps, "stack");
+  props = Helpers.modifyProps(props, fallbackProps, 'stack');
   childComponents = childComponents || React.Children.toArray(props.children);
-  calculatedProps = calculatedProps || getCalculatedProps(props, childComponents);
+  calculatedProps =
+    calculatedProps || getCalculatedProps(props, childComponents);
   const { datasets } = calculatedProps;
   const { labelComponent, polar } = props;
   const childProps = getChildProps(props, calculatedProps);
-  const parentName = props.name || "group";
+  const parentName = props.name || 'group';
   return childComponents.map((child, index) => {
     const role = child.type && child.type.role;
     const xOffset = polar
       ? getPolarX0(props, calculatedProps, index)
       : getX0(props, calculatedProps, index);
     const style =
-      role === "voronoi" || role === "tooltip" || role === "label"
+      role === 'voronoi' || role === 'tooltip' || role === 'label'
         ? child.props.style
         : Wrapper.getChildStyle(child, index, calculatedProps);
-    const labels = props.labels ? getLabels(props, datasets, index) : child.props.labels;
+    const labels = props.labels
+      ? getLabels(props, datasets, index)
+      : child.props.labels;
     const name = child.props.name || `${parentName}-${role}-${index}`;
     return React.cloneElement(
       child,
@@ -165,7 +185,7 @@ function getChildren(props, childComponents, calculatedProps) {
           data: getDataWithOffset(props, datasets[index], xOffset),
           colorScale: getColorScale(props, child),
           labelComponent: labelComponent || child.props.labelComponent,
-          xOffset: role === "stack" ? xOffset : undefined
+          xOffset: role === 'stack' ? xOffset : undefined
         },
         childProps
       )

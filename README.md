@@ -1,3 +1,5 @@
+# Please note that this library is forked from victory-group from Formidable.
+
 # VictoryGroup
 
 `victory-group@^30.0.0` exports `VictoryGroup`
